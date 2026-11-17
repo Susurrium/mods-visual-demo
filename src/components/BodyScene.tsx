@@ -185,12 +185,9 @@ function CameraRig({ selected, reset, panelOpen }: Pick<Props, "selected" | "res
   useEffect(() => {
     transitioning.current = true;
   }, [selected, reset, panelOpen]);
-  useFrame(({ camera, size }, delta) => {
+  useFrame(({ camera }, delta) => {
     if (camera instanceof THREE.PerspectiveCamera) {
-      const open = panelOpen && size.width > 680;
-      const right = open ? Math.min(480, size.width) : 0;
-      const left = open ? Math.min(size.width * 0.32, size.width * 0.042 + 320) : 0;
-      camera.setViewOffset(size.width, size.height, (right - left) / 2, 0, size.width, size.height);
+      camera.clearViewOffset();
     }
     if (!controls.current || !transitioning.current) return;
     if (

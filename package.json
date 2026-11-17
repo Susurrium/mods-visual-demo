@@ -15,6 +15,7 @@
     "echarts": "^6.1.0",
     "lucide-react": "^0.468.0",
     "motion": "^12.0.0",
+    "obi-graph": "^0.1.0",
     "open-anatomy-3d": "0.1.0",
     "open-anatomy-3d-react": "0.1.0",
     "react": "18.3.1",

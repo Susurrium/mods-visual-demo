@@ -80,6 +80,8 @@ const phases = [
 type Panel = "import" | "expert" | "chat" | null;
 
 export default function App() {
+  const [welcome, setWelcome] = useState(true);
+  const [reportCollapsed, setReportCollapsed] = useState(false);
   const [caseIndex, setCaseIndex] = useState(0),
     [timeIndex, setTimeIndex] = useState(2),
     [horizon, setHorizon] = useState(0);
@@ -168,6 +170,7 @@ export default function App() {
     setPanel(null);
   };
   const openExpert = (i: number) => {
+    setReportCollapsed(false);
     setExpert(i);
     setSelected(i < 6 ? domains[i].key : null);
     setPanel("expert");
@@ -208,7 +211,7 @@ export default function App() {
     setNotice("");
   };
   return (
-    <main className="app-shell in-app">
+    <main className={`app-shell in-app ${panel === 'expert' && !report ? 'expert-mode' : ''} ${!imported ? 'awaiting-import' : ''}`}>
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
       <div className="ambient ambient-three" />
@@ -242,9 +245,9 @@ export default function App() {
           <span className="top-context">
             {patient.encounter} · {displayTime(snapshot.time)}
           </span>
-          <button className="quiet-button" onClick={() => setPanel("import")}>
+          {imported && <button className="quiet-button" onClick={() => setPanel("import")}>
             <FileJson size={15} /> 导入数据
-          </button>
+          </button>}
         </div>
       </header>
       <div className="scene-background">
@@ -268,7 +271,7 @@ export default function App() {
         </Suspense>
       </div>
       <div className="workspace">
-        <section className="left-panel glass-panel">
+        {imported && <section className="left-panel glass-panel">
           <div className="panel-heading">
             <div>
               <span className="eyebrow">PATIENT OVERVIEW</span>
@@ -359,7 +362,7 @@ export default function App() {
               <ChevronRight size={14} />
             </button>
           </div>
-        </section>
+        </section>}
         <section className="body-area" aria-label="三维人体交互">
           <div className="body-title">
             <span className="eyebrow">ORGAN INSIGHT</span>
@@ -384,7 +387,7 @@ export default function App() {
               </button>
             )}
           </div>
-          <div className="organ-nav">
+          {done && <div className="organ-nav">
             {domains.map((d, i) => (
               <button
                 key={d.key}
@@ -395,10 +398,11 @@ export default function App() {
                 {d.label}
               </button>
             ))}
-          </div>
+          </div>}
+          {!imported && <div className="import-callout"><span>选择病例后开始</span><h3>{patient.label}</h3><p>导入预设记录，探索患者的器官状态与风险变化。</p><button className="main-primary" onClick={() => setPanel('import')}><FileJson size={16}/> 导入演示数据 <ArrowRight size={16}/></button></div>}
           <div className="body-hint">拖动旋转 · 滚动缩放 · 点击功能域</div>
         </section>
-        <section className="right-panel glass-panel">
+        {imported && <section className="right-panel glass-panel">
           <div className="panel-heading">
             <div>
               <span className="eyebrow">ASSESSMENT</span>
@@ -549,8 +553,8 @@ export default function App() {
               </button>
             </>
           )}
-        </section>
-        <section className="timeline glass-panel">
+        </section>}
+        {imported && <section className="timeline glass-panel">
           <div className="timeline-intro">
             <span className="eyebrow">PATIENT TIMELINE</span>
             <strong>随时间观察变化</strong>
@@ -591,8 +595,8 @@ export default function App() {
             <span>当前观察时点</span>
             <strong>{displayTime(snapshot.time)}</strong>
           </div>
-        </section>
-        <div className="workspace-footer">
+        </section>}
+        {imported && <div className="workspace-footer">
           <span>虚构患者 · 预设结果 · 研究展示</span>
           <button
             onClick={() => {
@@ -605,8 +609,9 @@ export default function App() {
           >
             <RotateCcw size={13} /> 重新演示
           </button>
-        </div>
+        </div>}
       </div>
+      {welcome && <div className="welcome-screen"><div className="welcome-copy"><span className="welcome-brand"><Activity size={20}/> VITALIS · MODS</span><h1>从全身，<br/><em>看见变化。</em></h1><p>脓毒症多器官功能障碍风险评估与知识探索</p><button className="welcome-button" onClick={() => setWelcome(false)}>进入演示 <ArrowRight size={17}/></button><small>演示模式 · 使用虚构病例与预设结果</small></div></div>}
       {report && (
         <div className="report-overlay">
           <div className="report-top">
@@ -756,10 +761,13 @@ export default function App() {
       )}
       {panel && (
         <div className={`drawer-shade ${panel === "expert" && !report ? "expert-shade" : ""}`} onClick={() => setPanel(null)}>
+          {panel === 'expert' && !report && <nav className="expert-domain-nav" aria-label="切换功能域" onClick={e => e.stopPropagation()}>{evidence.map((item, i) => <button key={item.name} className={expert === i ? 'active' : ''} onClick={() => openExpert(i)}>{item.name}</button>)}</nav>}
           <aside
-            className="drawer unified-drawer"
+            key={panel === 'expert' ? expert : panel}
+            className={`drawer unified-drawer ${reportCollapsed ? 'collapsed' : ''}`}
             onClick={(e) => e.stopPropagation()}
           >
+            {panel === 'expert' && !report && <button className="mobile-report-toggle" onClick={() => setReportCollapsed(v => !v)}>{reportCollapsed ? '展开报告' : '收起报告'}</button>}
             <div className="drawer-head">
               <div>
                 <span className="eyebrow">
@@ -928,20 +936,7 @@ export default function App() {
             )}
             {panel === "expert" && (
               <>
-                <div className="expert-tabs">
-                  {evidence.map((e, i) => (
-                    <button
-                      key={e.name}
-                      className={expert === i ? "active" : ""}
-                      onClick={() => {
-                        setExpert(i);
-                        setSelected(i < 6 ? domains[i].key : null);
-                      }}
-                    >
-                      {e.name}
-                    </button>
-                  ))}
-                </div>
+                {report && <div className="expert-tabs">{evidence.map((e, i) => <button key={e.name} className={expert === i ? 'active' : ''} onClick={() => openExpert(i)}>{e.name}</button>)}</div>}
                 <section className="expert-conclusion">
                   <span className="section-index">关键结论 · 演示分析</span>
                   <h3>{expert === 6 ? `当前 MODS 状态：${status}` : snapshot.scores[expert] === null ? '资料不足，暂无法评估' : `${domains[expert].label} SOFA 分项 ${snapshot.scores[expert]} 分`}</h3>
