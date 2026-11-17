@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'motion/react'
 import { cases, displayProbability, displayTime, domains, modsStatus, type DomainKey } from './data/model'
 import RecordsDrawer, { emptyInput, type InputData } from './components/RecordsDrawer'
 import RiskChart from './components/RiskChart'
+import GuidedDemo from './components/GuidedDemo'
 const BodyScene = lazy(() => import('./components/BodyScene'))
 
-const organRisks: Record<string, (number[][] | null)[]> = {
+export const organRisks: Record<string, (number[][] | null)[]> = {
   'DEMO-001': [ [[0.12,0.18,0.25],[0.06,0.09,0.12],[0.05,0.08,0.10],[0.11,0.17,0.22],[0.04,0.06,0.09],[0.09,0.14,0.19]], [[0.19,0.26,0.33],[0.07,0.10,0.14],[0.06,0.09,0.12],[0.15,0.21,0.28],[0.05,0.08,0.11],[0.14,0.20,0.27]], [[0.32,0.41,0.48],[0.09,0.13,0.17],[0.08,0.12,0.16],[0.23,0.30,0.37],[0.06,0.10,0.14],[0.29,0.38,0.45]], null ],
   'DEMO-002': [ [[0.07,0.11,0.15],[0.04,0.07,0.10],[0.03,0.06,0.08],[0.06,0.09,0.13],[0.03,0.05,0.07],[0.05,0.08,0.11]], [[0.06,0.10,0.14],[0.04,0.07,0.09],[0.03,0.05,0.08],[0.05,0.09,0.12],[0.03,0.05,0.07],[0.05,0.08,0.11]], [[0.05,0.09,0.13],[0.03,0.06,0.09],[0.03,0.05,0.07],[0.05,0.08,0.11],[0.02,0.04,0.06],[0.04,0.07,0.10]], [[0.04,0.08,0.11],[0.03,0.05,0.08],[0.02,0.04,0.07],[0.04,0.07,0.10],[0.02,0.04,0.06],[0.04,0.06,0.09]] ],
   'DEMO-003': [null, null, null, null],
@@ -15,6 +16,7 @@ const labels = ['24', '48', '72']
 
 function App() {
   const [entered, setEntered] = useState(false)
+  const [guided, setGuided] = useState(false)
   const [caseIndex, setCaseIndex] = useState(0)
   const [timeIndex, setTimeIndex] = useState(2)
   const [horizon, setHorizon] = useState(0)
@@ -63,7 +65,7 @@ function App() {
   const changeCase = (index: number) => { setCaseIndex(index); setTimeIndex(2); setPlaying(false); setSelected(null); setDirty(false); setRecords(sampleRecords(index, 2)); setCameraReset(x => x + 1) }
   const changeTime = (index: number) => { setTimeIndex(index) }
   const restore = () => { setDirty(false); setRecords(sampleRecords(caseIndex, timeIndex)); setPlaying(false) }
-  const start = () => { setEntered(true); setRecords(sampleRecords(0, 2)) }
+  const start = () => { setEntered(true); setGuided(true); setRecords(sampleRecords(0, 2)) }
   const shownScore = dirty ? null : score
   const label = dirty ? '输入已变更' : score === null ? '无法评估' : score >= 2 ? '达到异常阈值' : '低于异常阈值'
   const statusText = dirty ? '输入已变更' : status
@@ -73,7 +75,7 @@ function App() {
 
   return <main className={`app-shell ${entered ? 'in-app' : 'is-landing'}`}>
     <div className="ambient ambient-one"/><div className="ambient ambient-two"/><div className="ambient ambient-three"/>
-    <header className="topbar"><button className="brand" onClick={() => { setEntered(false); setSelected(null); setPlaying(false) }} aria-label="返回首页"><span className="brand-mark"><Activity size={17}/></span><span>VITALIS<small> · MODS</small></span></button><div className="top-actions"><span className="demo-label"><span/>演示模式</span>{entered && <><button className="quiet-button" onClick={() => setDrawer(true)}><FileText size={15}/> 临床记录</button><button className="quiet-button" onClick={restore}><RotateCcw size={14}/> 恢复病例</button></>}<button className="icon-button" onClick={() => setAbout(true)} aria-label="关于与来源"><CircleHelp size={19}/></button></div></header>
+    <header className="topbar"><button className="brand" onClick={() => { setEntered(false); setSelected(null); setPlaying(false) }} aria-label="返回首页"><span className="brand-mark"><Activity size={17}/></span><span>VITALIS<small> · MODS</small></span></button><div className="top-actions"><span className="demo-label"><span/>演示模式</span>{entered && <><button className="quiet-button" onClick={() => setGuided(true)}><Sparkles size={15}/> 完整评估流程</button><button className="quiet-button" onClick={() => setDrawer(true)}><FileText size={15}/> 临床记录</button><button className="quiet-button" onClick={restore}><RotateCcw size={14}/> 恢复病例</button></>}<button className="icon-button" onClick={() => setAbout(true)} aria-label="关于与来源"><CircleHelp size={19}/></button></div></header>
     <div className="scene-background"><div className="scene-ring ring-one"/><div className="scene-ring ring-two"/><div className="scene-glow"/><Suspense fallback={<div className="scene-loading">正在准备三维场景…</div>}><BodyScene selected={selected} onSelect={key => { setSelected(key); setEvidence(false) }} scores={dirty ? Array(6).fill(null) : snapshot.scores} sex={current.sex} reset={cameraReset}/></Suspense></div>
 
     {!entered ? <motion.section className="landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><div className="landing-copy"><div className="landing-rule"/><p className="landing-kicker">INTELLIGENT ORGAN INSIGHT</p><h1>看见变化，<br/><em>更早一步。</em></h1><p className="landing-description">脓毒症患者多器官功能障碍<br/>动态风险预测交互演示</p><button className="primary landing-cta" onClick={start}>进入演示 <ArrowRight size={17}/></button><p className="landing-foot">虚构病例与预设结果 · 用于研究展示</p></div><div className="landing-side"><span>01 / 06</span><strong>从全身，到每个器官。</strong><p>探索生命体征背后的关联与变化。</p></div><div className="landing-bottom">SEPSIS → MODS <span> · </span> INTERACTIVE EXPERIENCE</div></motion.section> : <motion.div className="workspace" initial={{opacity:0}} animate={{opacity:1}}>
@@ -97,6 +99,7 @@ function App() {
     {drawer && <RecordsDrawer data={records} onChange={data => {setRecords(data);setDirty(true);setPlaying(false)}} close={() => setDrawer(false)}/>}
     {evidence && <div className="drawer-shade" onClick={() => setEvidence(false)}><aside className="drawer evidence-drawer" onClick={e => e.stopPropagation()}><div className="drawer-head"><div><span className="eyebrow">EXPLANATION & EVIDENCE</span><h2>理解这次评估</h2><p>{selected ? active.label : '整体风险'} · 演示病例</p></div><button className="icon-button" onClick={() => setEvidence(false)} aria-label="关闭"><X size={19}/></button></div><section className="evidence-section"><span className="section-index">01 / PATIENT DATA</span><h3>患者数据事实</h3><p>{dirty ? '输入已变更，预设解释不再对应当前记录。' : selected ? `${displayTime(snapshot.time)} 的${active.metric}记录为 ${snapshot.values[activeIndex]}。` : `${displayTime(snapshot.time)} 当前 MODS 状态：${status}。`}</p></section><section className="evidence-section"><span className="section-index">02 / MODEL INSIGHT</span><h3>模型判断依据</h3><div className="demo-basis">{dirty ? '当前输入暂无模型结果。' : '演示说明：系统可在接入真实模型归因后展示贡献因素与方向。'}</div></section><section className="evidence-section"><span className="section-index">03 / MEDICAL CONTEXT</span><h3>医学知识与文献</h3><p>Sepsis-3 共识使用 SOFA 评分描述感染相关器官功能障碍。此处文献用于展示背景知识，具体病例与风险数值均为虚构。</p><a className="paper-card" href="https://pubmed.ncbi.nlm.nih.gov/26903338/" target="_blank" rel="noreferrer"><span>JAMA · 2016 <ArrowDownRight size={15}/></span><b>The Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3)</b><small>PMID 26903338 · DOI 10.1001/jama.2016.0287</small></a><p className="paper-note">原文：定义与临床标准部分。该文献不验证此演示病例或其预测结果。</p></section></aside></div>}
     {about && <div className="drawer-shade" onClick={() => setAbout(false)}><aside className="drawer about-drawer" onClick={e => e.stopPropagation()}><div className="drawer-head"><div><span className="eyebrow">ABOUT THE EXPERIENCE</span><h2>关于与来源</h2></div><button className="icon-button" onClick={() => setAbout(false)} aria-label="关闭"><X size={19}/></button></div><p>VITALIS 是脓毒症至 MODS 风险预测项目的交互展示。所有病例、评分及预测概率为虚构演示数据。</p><h3>三维人体资源</h3><p>Anatomy: BodyParts3D © The Database Center for Life Science (CC BY 4.0); female organs: Human Reference Atlas 3D Reference Organs, HuBMAP (CC BY 4.0); female body: MakeHuman (CC0). Modified by open-anatomy-3d, CC BY 4.0. 本项目调整了模型材质与展示方式。</p><div className="about-links"><a href="https://github.com/MervinR07/open-anatomy-3d" target="_blank" rel="noreferrer">Open Anatomy 3D <ArrowRight size={14}/></a><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0 <ArrowRight size={14}/></a><a href={`${import.meta.env.BASE_URL}licenses/ATTRIBUTION.md`} target="_blank">完整署名 <ArrowRight size={14}/></a></div></aside></div>}
+    {entered && <div style={{display: guided ? 'block' : 'none'}}><GuidedDemo onExit={() => setGuided(false)} onVisual={(c,t,d) => { changeCase(c); setTimeIndex(t); setSelected(d === undefined ? null : domains[d].key); setGuided(false) }}/></div>}
   </main>
 }
 export default App
