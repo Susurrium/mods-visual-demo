@@ -1,0 +1,34 @@
+{
+  "name": "mods-visual-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@react-three/drei": "9.122.0",
+    "@react-three/fiber": "8.18.0",
+    "echarts": "^6.1.0",
+    "lucide-react": "^0.468.0",
+    "motion": "^12.0.0",
+    "open-anatomy-3d": "0.1.0",
+    "open-anatomy-3d-react": "0.1.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "three": "^0.170.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/three": "^0.170.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "~5.7.3",
+    "vite": "^7.3.8",
+    "vitest": "^4.1.12"
+  }
+}
