@@ -960,7 +960,7 @@ export default function App() {
                   </p>
                 </section>
                 <section className="evidence-section"><span className="section-index">03 / 专家解释与复核</span><p>{currentEvidence.summary} {currentEvidence.limitation}</p></section>
-                <KnowledgeGalaxy index={expert} />
+                <KnowledgeGalaxy index={expert} snapshot={snapshot} caseId={patient.id} />
               </>
             )}
             {panel === "chat" && (
