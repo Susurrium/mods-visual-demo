@@ -1,0 +1,8 @@
+.literature-preview-graph { position:absolute; inset:0 0 0 42%; opacity:.8; pointer-events:none; }
+.literature-preview-graph .graph-canvas { --graph-surface:transparent; --graph-text:#c5d9f0; }
+.literature-entry > span, .literature-entry > strong, .literature-entry > small { position:relative; z-index:1; }
+.explorer-key span:nth-child(2):before { background:#96e1dc; }
+.explorer-key span:nth-child(3):before { background:#f5d4b4; }
+.explorer-key span:nth-child(4):before { background:#e3a4c7; }
+.explorer-key:after { content:'● 医学主题'; color:#b696e5; }
+.literature-results:empty:after { content:'没有找到匹配的题录，请调整搜索条件。'; color:#a8bdd9; padding:20px 0; font-size:13px; }

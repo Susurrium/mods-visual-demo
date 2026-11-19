@@ -29,7 +29,7 @@ import RecordsDrawer, {
   emptyInput,
   type InputData,
 } from "./components/RecordsDrawer";
-import KnowledgeGalaxy from "./components/KnowledgeGalaxy";
+import KnowledgeGalaxy from "./components/EvidenceExplorer";
 import ReportChat from "./components/ReportChat";
 const BodyScene = lazy(() => import("./components/BodyScene"));
 
@@ -94,6 +94,7 @@ export default function App() {
   const [panel, setPanel] = useState<Panel>(null),
     [expert, setExpert] = useState(0),
     [report, setReport] = useState(false);
+  const [evidenceRequest, setEvidenceRequest] = useState<{ domain: number; id: number } | null>(null);
   const [selected, setSelected] = useState<DomainKey | null>(null),
     [reset, setReset] = useState(0),
     [records, setRecords] = useState(false);
@@ -174,6 +175,10 @@ export default function App() {
     setExpert(i);
     setSelected(i < 6 ? domains[i].key : null);
     setPanel("expert");
+  };
+  const openEvidence = (i: number) => {
+    openExpert(i);
+    setEvidenceRequest({ domain: i, id: Date.now() });
   };
   const questions = [
     "为什么整体风险值得关注？",
@@ -733,7 +738,7 @@ export default function App() {
                   <h2>七个知识视图</h2>
                   <div className="report-evidence">
                     {evidence.map((e, i) => (
-                      <button key={e.name} onClick={() => openExpert(i)}>
+                      <button key={e.name} onClick={() => openEvidence(i)}>
                         <BookOpen size={14} />
                         {e.name}知识视图 <ChevronRight size={14} />
                       </button>
@@ -742,7 +747,7 @@ export default function App() {
                 </div>
               </div>
             </div>
-          </div><ReportChat caseId={patient.id} time={displayTime(snapshot.time)} hours={hours} questions={questions} messages={messages} input={input} notice={notice} setInput={setInput} send={send} openExpert={openExpert} /></div>
+          </div><ReportChat caseId={patient.id} time={displayTime(snapshot.time)} hours={hours} questions={questions} messages={messages} input={input} notice={notice} setInput={setInput} send={send} openExpert={openEvidence} /></div>
         </div>
       )}
       {editRecords && (
@@ -960,7 +965,7 @@ export default function App() {
                   </p>
                 </section>
                 <section className="evidence-section"><span className="section-index">03 / 专家解释与复核</span><p>{currentEvidence.summary} {currentEvidence.limitation}</p></section>
-                <KnowledgeGalaxy index={expert} snapshot={snapshot} caseId={patient.id} />
+                <KnowledgeGalaxy index={expert} snapshot={snapshot} caseId={patient.id} request={evidenceRequest?.domain === expert ? evidenceRequest.id : undefined} onRequestHandled={() => setEvidenceRequest(null)} />
               </>
             )}
             {panel === "chat" && (
