@@ -27,6 +27,18 @@ npm run preview
 
 更新工作簿后，将工作簿放在本项目的上级目录，使用安装了 `openpyxl` 的 Python 运行 `python scripts/build_literature.py`。转换会检查编号和证据卡关联，生成题录分片、检索索引和 `report.json`；重复 DOI 会作为待核查候选保留，不自动合并。原文文件与本机文件路径不包含在网页数据中。
 
+## 系统架构图
+
+落地页架构区与应用内"系统架构"视图嵌入 `public/architecture/mods-agent-architecture.html`。该文件是 Archify 生成的独立产物，以 `?embed=1&theme=light` 嵌入，风格固定为 blueprint、浅色、动态；图形源候选位于本项目上级目录 `.archify/architecture-mods-agent-pipeline-20261119-185426/candidate.json`，内容依据《一、总架构.md》与智能体名册。
+
+架构变更后，更新候选文件并在上级目录重新生成（重复运行需使用新的 `--out-dir`）：
+
+```sh
+node <archify 安装路径>/bin/archify.mjs finalize architecture .archify/architecture-mods-agent-pipeline-20261119-185426/candidate.json .archify/architecture-mods-agent-pipeline-20261119-185426/mods-agent-architecture.html --quality showcase --out-dir .archify/architecture-mods-agent-pipeline-20261119-185426/review-<n> --json
+```
+
+将产物复制到 `public/architecture/mods-agent-architecture.html`，并同步更新 `src/data/architecture.ts` 的层卡片文字。不要手工修改生成的 HTML；嵌入锁定逻辑（快捷键屏蔽、动效强制、蓝图网格恢复）位于 `src/components/architectureEmbed.ts`，查看器升级时核对其中的快捷键清单。
+
 ## GitHub Pages
 
 将本目录作为 Git 仓库根目录，推送至 GitHub 的 `main` 分支。在仓库 Settings → Pages 中选择 GitHub Actions，工作流会构建并发布 `dist`。Vite 使用相对资源路径，支持项目网站子路径。

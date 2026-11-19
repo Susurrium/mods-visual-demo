@@ -1,13 +1,16 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   Activity,
   ArrowLeft,
   ArrowRight,
   BookOpen,
   Check,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   FileJson,
   MessageCircle,
+  Network,
   Pause,
   Play,
   RotateCcw,
@@ -31,6 +34,7 @@ import RecordsDrawer, {
 } from "./components/RecordsDrawer";
 import KnowledgeGalaxy from "./components/EvidenceExplorer";
 import ReportChat from "./components/ReportChat";
+import ArchitectureSection from "./components/ArchitectureSection";
 const BodyScene = lazy(() => import("./components/BodyScene"));
 
 export const organRisks: Record<string, (number[][] | null)[]> = {
@@ -108,6 +112,22 @@ export default function App() {
       [],
     ),
     [notice, setNotice] = useState("");
+  const [architecture, setArchitecture] = useState(false),
+    [archFromReport, setArchFromReport] = useState(false),
+    [landingScrolled, setLandingScrolled] = useState(false);
+  const landingRef = useRef<HTMLDivElement>(null);
+  const openArchitecture = (fromReport: boolean) => {
+    setArchFromReport(fromReport);
+    setArchitecture(true);
+  };
+  const scrollLandingTo = (target: "architecture" | "top") => {
+    const container = landingRef.current;
+    if (!container) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const behavior: ScrollBehavior = reduce ? "auto" : "smooth";
+    if (target === "top") container.scrollTo({ top: 0, behavior });
+    else container.querySelector("#architecture")?.scrollIntoView({ behavior, block: "start" });
+  };
   const patient = cases[caseIndex],
     snapshot = patient.snapshots[timeIndex],
     status = modsStatus(snapshot.scores),
@@ -250,6 +270,9 @@ export default function App() {
           <span className="top-context">
             {patient.encounter} · {displayTime(snapshot.time)}
           </span>
+          <button className="quiet-button" onClick={() => openArchitecture(false)}>
+            <Network size={15} /> 系统架构
+          </button>
           {imported && <button className="quiet-button" onClick={() => setPanel("import")}>
             <FileJson size={15} /> 导入数据
           </button>}
@@ -494,6 +517,9 @@ export default function App() {
                   跳过至完成
                 </button>
               </div>
+              <button className="text-link arch-progress-link" onClick={() => openArchitecture(false)}>
+                <Network size={13} /> 查看完整系统架构
+              </button>
             </>
           ) : (
             <>
@@ -556,6 +582,9 @@ export default function App() {
               >
                 <RotateCcw size={13} /> 重播分析
               </button>
+              <button className="text-link arch-progress-link" onClick={() => openArchitecture(false)}>
+                <Network size={13} /> 查看完整系统架构
+              </button>
             </>
           )}
         </section>}
@@ -616,7 +645,39 @@ export default function App() {
           </button>
         </div>}
       </div>
-      {welcome && <div className="welcome-screen"><div className="welcome-copy"><span className="welcome-brand"><Activity size={20}/> VITALIS · MODS</span><h1>从全身，<br/><em>看见变化。</em></h1><p>脓毒症多器官功能障碍风险评估与知识探索</p><button className="welcome-button" onClick={() => setWelcome(false)}>进入演示 <ArrowRight size={17}/></button><small>演示模式 · 使用虚构病例与预设结果</small></div></div>}
+      {welcome && (
+        <div
+          className="welcome-screen landing-scroll"
+          ref={landingRef}
+          onScroll={(e) => setLandingScrolled(e.currentTarget.scrollTop > e.currentTarget.clientHeight * 0.5)}
+        >
+          <section className="landing-hero">
+            <div className="welcome-copy">
+              <span className="welcome-brand"><Activity size={20}/> VITALIS · MODS</span>
+              <h1>从全身，<br/><em>看见变化。</em></h1>
+              <p>脓毒症多器官功能障碍风险评估与知识探索</p>
+              <p className="landing-position">面向脓毒症患者的首次 MODS 动态风险预测 · 24 / 48 / 72 小时窗口</p>
+              <button className="welcome-button" onClick={() => setWelcome(false)}>进入演示 <ArrowRight size={17}/></button>
+              <small>演示模式 · 使用虚构病例与预设结果</small>
+            </div>
+            <button className="landing-scroll-hint" onClick={() => scrollLandingTo("architecture")}>
+              <ChevronDown size={15} /> 向下滚动 · 了解系统架构
+            </button>
+          </section>
+          <div className="landing-body">
+            <ArchitectureSection variant="landing" />
+            <footer className="landing-footer">
+              <button onClick={() => scrollLandingTo("top")}><ChevronUp size={13} /> 回到顶部</button>
+              <span>VITALIS · MODS 交互演示</span>
+            </footer>
+          </div>
+          {landingScrolled && (
+            <button className="landing-enter-float" onClick={() => setWelcome(false)}>
+              进入演示 <ArrowRight size={15} />
+            </button>
+          )}
+        </div>
+      )}
       {report && (
         <div className="report-overlay">
           <div className="report-top">
@@ -711,6 +772,12 @@ export default function App() {
                   >
                     查看综合专家依据 <ArrowRight size={14} />
                   </button>
+                  <button
+                    className="journey-link"
+                    onClick={() => openArchitecture(true)}
+                  >
+                    分析方法与系统架构 <ArrowRight size={14} />
+                  </button>
                 </div>
               </div>
               <div className="report-side">
@@ -748,6 +815,19 @@ export default function App() {
               </div>
             </div>
           </div><ReportChat caseId={patient.id} time={displayTime(snapshot.time)} hours={hours} questions={questions} messages={messages} input={input} notice={notice} setInput={setInput} send={send} openExpert={openEvidence} /></div>
+        </div>
+      )}
+      {architecture && (
+        <div className="report-overlay architecture-overlay">
+          <div className="report-top">
+            <button onClick={() => setArchitecture(false)}>
+              <ArrowLeft size={16} /> {archFromReport ? "返回报告" : "返回评估"}
+            </button>
+            <span>VITALIS · MODS · 系统架构</span>
+          </div>
+          <div className="architecture-overlay-content">
+            <ArchitectureSection variant="overlay" />
+          </div>
         </div>
       )}
       {editRecords && (
